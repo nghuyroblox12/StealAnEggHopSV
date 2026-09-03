@@ -4,6 +4,7 @@
 local Players = game:GetService("Players")
 local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
+local UserInputService = game:GetService("UserInputService")
 
 local Player = Players.LocalPlayer
 local PlaceId = 107778070777162
@@ -14,159 +15,265 @@ Gui.Name = "StealAnEggServerBrowser"
 Gui.ResetOnSpawn = false
 Gui.Parent = Player:WaitForChild("PlayerGui")
 
+--// MAIN
 local Main = Instance.new("Frame")
 Main.Size = UDim2.fromOffset(420, 500)
 Main.Position = UDim2.new(0.5, -210, 0.5, -250)
-Main.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+Main.BackgroundColor3 = Color3.fromRGB(22, 23, 29)
 Main.BorderSizePixel = 0
+Main.Active = true
 Main.Parent = Gui
 
-local Corner = Instance.new("UICorner")
-Corner.CornerRadius = UDim.new(0, 10)
-Corner.Parent = Main
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 12)
+MainCorner.Parent = Main
 
--- Header
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = Color3.fromRGB(55, 57, 68)
+MainStroke.Thickness = 1
+MainStroke.Parent = Main
+
+--// HEADER
 local Header = Instance.new("Frame")
-Header.Size = UDim2.new(1,0,0,82)
-Header.BackgroundColor3 = Color3.fromRGB(24,25,32)
+Header.Size = UDim2.new(1, 0, 0, 70)
+Header.BackgroundColor3 = Color3.fromRGB(27, 28, 36)
 Header.BorderSizePixel = 0
+Header.Active = true
 Header.Parent = Main
 
-Instance.new("UICorner", Header).CornerRadius = UDim.new(0,14)
+local HeaderCorner = Instance.new("UICorner")
+HeaderCorner.CornerRadius = UDim.new(0, 12)
+HeaderCorner.Parent = Header
 
+--// TITLE
 local Title = Instance.new("TextLabel")
-Title.Position = UDim2.fromOffset(18,10)
-Title.Size = UDim2.new(1,-35,0,30)
+Title.Position = UDim2.fromOffset(16, 8)
+Title.Size = UDim2.new(1, -110, 0, 30)
 Title.BackgroundTransparency = 1
-Title.Text = "🥚  STEAL AN EGG"
-Title.TextColor3 = Color3.fromRGB(245,245,250)
-Title.TextSize = 22
+Title.Text = "STEAL AN EGG"
+Title.TextColor3 = Color3.fromRGB(245, 245, 250)
+Title.TextSize = 21
 Title.Font = Enum.Font.GothamBold
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = Header
 
+local SubTitle = Instance.new("TextLabel")
+SubTitle.Position = UDim2.fromOffset(17, 37)
+SubTitle.Size = UDim2.new(1, -110, 0, 20)
+SubTitle.BackgroundTransparency = 1
+SubTitle.Text = "SERVER BROWSER"
+SubTitle.TextColor3 = Color3.fromRGB(130, 135, 150)
+SubTitle.TextSize = 11
+SubTitle.Font = Enum.Font.GothamMedium
+SubTitle.TextXAlignment = Enum.TextXAlignment.Left
+SubTitle.Parent = Header
+
+--// MINIMIZE BUTTON
+local Minimize = Instance.new("TextButton")
+Minimize.Size = UDim2.fromOffset(32, 30)
+Minimize.Position = UDim2.new(1, -72, 0, 10)
+Minimize.BackgroundColor3 = Color3.fromRGB(50, 52, 62)
+Minimize.Text = "-"
+Minimize.TextColor3 = Color3.fromRGB(230, 230, 235)
+Minimize.TextSize = 20
+Minimize.Font = Enum.Font.GothamBold
+Minimize.Parent = Header
+
+local MinCorner = Instance.new("UICorner")
+MinCorner.CornerRadius = UDim.new(0, 7)
+MinCorner.Parent = Minimize
+
+--// CLOSE BUTTON
+local Close = Instance.new("TextButton")
+Close.Size = UDim2.fromOffset(32, 30)
+Close.Position = UDim2.new(1, -36, 0, 10)
+Close.BackgroundColor3 = Color3.fromRGB(190, 55, 65)
+Close.Text = "X"
+Close.TextColor3 = Color3.fromRGB(255, 255, 255)
+Close.TextSize = 13
+Close.Font = Enum.Font.GothamBold
+Close.Parent = Header
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 7)
+CloseCorner.Parent = Close
+
+--// STATUS
 local Status = Instance.new("TextLabel")
-Status.Size = UDim2.new(1, -20, 0, 25)
-Status.Position = UDim2.fromOffset(10, 48)
+Status.Size = UDim2.new(1, -20, 0, 24)
+Status.Position = UDim2.fromOffset(10, 75)
 Status.BackgroundTransparency = 1
 Status.Text = "Ready"
-Status.TextColor3 = Color3.fromRGB(180, 180, 180)
-Status.TextSize = 14
+Status.TextColor3 = Color3.fromRGB(175, 178, 190)
+Status.TextSize = 13
 Status.Font = Enum.Font.Gotham
+Status.TextXAlignment = Enum.TextXAlignment.Left
 Status.Parent = Main
 
---// Buttons
+--// REFRESH
 local Refresh = Instance.new("TextButton")
-Refresh.Size = UDim2.fromOffset(120, 35)
-Refresh.Position = UDim2.fromOffset(10, 78)
-Refresh.BackgroundColor3 = Color3.fromRGB(50, 120, 220)
+Refresh.Size = UDim2.fromOffset(125, 35)
+Refresh.Position = UDim2.fromOffset(10, 102)
+Refresh.BackgroundColor3 = Color3.fromRGB(55, 120, 220)
 Refresh.Text = "REFRESH"
 Refresh.TextColor3 = Color3.new(1, 1, 1)
-Refresh.TextSize = 14
+Refresh.TextSize = 13
 Refresh.Font = Enum.Font.GothamBold
 Refresh.Parent = Main
 
-Instance.new("UICorner", Refresh).CornerRadius = UDim.new(0, 7)
+local RefreshCorner = Instance.new("UICorner")
+RefreshCorner.CornerRadius = UDim.new(0, 7)
+RefreshCorner.Parent = Refresh
 
+--// AUTO HOP
 local AutoHop = Instance.new("TextButton")
-AutoHop.Size = UDim2.fromOffset(120, 35)
-AutoHop.Position = UDim2.fromOffset(140, 78)
-AutoHop.BackgroundColor3 = Color3.fromRGB(50, 170, 90)
+AutoHop.Size = UDim2.fromOffset(125, 35)
+AutoHop.Position = UDim2.fromOffset(145, 102)
+AutoHop.BackgroundColor3 = Color3.fromRGB(45, 165, 90)
 AutoHop.Text = "AUTO HOP: OFF"
 AutoHop.TextColor3 = Color3.new(1, 1, 1)
-AutoHop.TextSize = 14
+AutoHop.TextSize = 13
 AutoHop.Font = Enum.Font.GothamBold
 AutoHop.Parent = Main
 
+local AutoCorner = Instance.new("UICorner")
+AutoCorner.CornerRadius = UDim.new(0, 7)
+AutoCorner.Parent = AutoHop
 
-Instance.new("UICorner", AutoHop).CornerRadius = UDim.new(0, 7)
--- Footer
+--// FOOTER
 local Footer = Instance.new("TextLabel")
-Footer.Position = UDim2.new(0,18,1,-48)
-Footer.Size = UDim2.new(1,-36,0,30)
+Footer.Position = UDim2.new(0, 18, 1, -42)
+Footer.Size = UDim2.new(1, -36, 0, 25)
 Footer.BackgroundTransparency = 1
 Footer.Text = "TikTok: nghuyroblox12"
-Footer.TextColor3 = Color3.fromRGB(120,124,140)
-Footer.TextSize = 22
+Footer.TextColor3 = Color3.fromRGB(105, 109, 125)
+Footer.TextSize = 14
 Footer.Font = Enum.Font.GothamMedium
 Footer.TextXAlignment = Enum.TextXAlignment.Center
 Footer.Parent = Main
---// Server list
+
+--// SERVER LIST
 local List = Instance.new("ScrollingFrame")
-List.Size = UDim2.new(1, -20, 1, -165)
-List.Position = UDim2.fromOffset(10, 125)
-List.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
+List.Size = UDim2.new(1, -20, 1, -185)
+List.Position = UDim2.fromOffset(10, 145)
+List.BackgroundColor3 = Color3.fromRGB(17, 18, 23)
 List.BorderSizePixel = 0
-List.ScrollBarThickness = 5
-List.CanvasSize = UDim2.new()
+
+--// THANH VUOT TO HON
+List.ScrollBarThickness = 18
+List.ScrollBarImageColor3 = Color3.fromRGB(105, 110, 130)
+List.ScrollBarImageTransparency = 0
+
+List.ScrollingEnabled = true
+List.ScrollingDirection = Enum.ScrollingDirection.Y
+List.Active = true
+List.CanvasSize = UDim2.new(0, 0, 0, 0)
+List.AutomaticCanvasSize = Enum.AutomaticSize.None
 List.Parent = Main
 
-Instance.new("UICorner", List).CornerRadius = UDim.new(0, 7)
+local ListCorner = Instance.new("UICorner")
+ListCorner.CornerRadius = UDim.new(0, 8)
+ListCorner.Parent = List
 
 local Layout = Instance.new("UIListLayout")
 Layout.Padding = UDim.new(0, 6)
 Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+Layout.SortOrder = Enum.SortOrder.LayoutOrder
 Layout.Parent = List
 
 local Padding = Instance.new("UIPadding")
 Padding.PaddingTop = UDim.new(0, 8)
+Padding.PaddingBottom = UDim.new(0, 8)
+Padding.PaddingLeft = UDim.new(0, 4)
+Padding.PaddingRight = UDim.new(0, 4)
 Padding.Parent = List
 
---// Make server row
+--// MAKE SERVER ROW
 local function AddServer(server)
+
     local Row = Instance.new("Frame")
-    Row.Size = UDim2.new(1, -16, 0, 55)
-    Row.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
+    Row.Size = UDim2.new(1, -20, 0, 55)
+    Row.BackgroundColor3 = Color3.fromRGB(34, 35, 43)
     Row.BorderSizePixel = 0
     Row.Parent = List
 
-    Instance.new("UICorner", Row).CornerRadius = UDim.new(0, 7)
+    local RowCorner = Instance.new("UICorner")
+    RowCorner.CornerRadius = UDim.new(0, 7)
+    RowCorner.Parent = Row
+
+    local RowStroke = Instance.new("UIStroke")
+    RowStroke.Color = Color3.fromRGB(48, 50, 60)
+    RowStroke.Thickness = 1
+    RowStroke.Parent = Row
 
     local PlayersText = Instance.new("TextLabel")
-    PlayersText.Size = UDim2.new(1, -100, 1, 0)
-    PlayersText.Position = UDim2.fromOffset(10, 0)
+    PlayersText.Size = UDim2.new(1, -110, 1, 0)
+    PlayersText.Position = UDim2.fromOffset(12, 0)
     PlayersText.BackgroundTransparency = 1
-    PlayersText.TextXAlignment = Enum.TextXAlignment.Left
-    PlayersText.Text = "👤  " .. server.playing .. "/" .. server.maxPlayers
-    PlayersText.TextColor3 = Color3.new(1, 1, 1)
-    PlayersText.TextSize = 16
+
+    PlayersText.Text =
+        "PLAYERS   " ..
+        tostring(server.playing) ..
+        "/" ..
+        tostring(server.maxPlayers)
+
+    PlayersText.TextColor3 = Color3.fromRGB(235, 235, 240)
+    PlayersText.TextSize = 15
     PlayersText.Font = Enum.Font.GothamMedium
+    PlayersText.TextXAlignment = Enum.TextXAlignment.Left
     PlayersText.Parent = Row
 
     local Join = Instance.new("TextButton")
     Join.Size = UDim2.fromOffset(75, 35)
-    Join.Position = UDim2.new(1, -85, 0.5, -17)
-    Join.BackgroundColor3 = Color3.fromRGB(50, 120, 220)
+    Join.Position = UDim2.new(1, -87, 0.5, -17)
+    Join.BackgroundColor3 = Color3.fromRGB(55, 120, 220)
     Join.Text = "JOIN"
     Join.TextColor3 = Color3.new(1, 1, 1)
     Join.TextSize = 13
     Join.Font = Enum.Font.GothamBold
     Join.Parent = Row
 
-    Instance.new("UICorner", Join).CornerRadius = UDim.new(0, 6)
+    local JoinCorner = Instance.new("UICorner")
+    JoinCorner.CornerRadius = UDim.new(0, 6)
+    JoinCorner.Parent = Join
 
     Join.MouseButton1Click:Connect(function()
-        Status.Text = "Joining " .. server.playing .. "/" .. server.maxPlayers .. "..."
+
+        Status.Text =
+            "Joining " ..
+            tostring(server.playing) ..
+            "/" ..
+            tostring(server.maxPlayers) ..
+            "..."
+
         TeleportService:TeleportToPlaceInstance(
             PlaceId,
             server.id,
             Player
         )
+
     end)
 end
 
---// Clear list
+--// CLEAR LIST
 local function ClearList()
+
     for _, child in ipairs(List:GetChildren()) do
+
         if child:IsA("Frame") then
             child:Destroy()
         end
+
     end
+
 end
 
---// Scan servers
+--// SCAN SERVERS
 local function ScanServers()
+
     ClearList()
+
+    List.CanvasPosition = Vector2.new(0, 0)
 
     Status.Text = "Scanning servers..."
 
@@ -174,38 +281,54 @@ local function ScanServers()
     local found = 0
 
     repeat
+
         local url =
-            "https://games.roblox.com/v1/games/"
-            .. PlaceId
-            .. "/servers/Public?sortOrder=Asc&limit=100"
+            "https://games.roblox.com/v1/games/" ..
+            PlaceId ..
+            "/servers/Public?sortOrder=Asc&limit=100"
 
         if cursor then
-            url = url .. "&cursor=" .. HttpService:UrlEncode(cursor)
+            url =
+                url ..
+                "&cursor=" ..
+                HttpService:UrlEncode(cursor)
         end
 
         local success, result = pcall(function()
+
             return HttpService:JSONDecode(
                 game:HttpGet(url)
             )
+
         end)
 
         if not success then
+
             Status.Text = "Failed to scan. Retrying..."
             task.wait(2)
             continue
+
         end
 
         for _, server in ipairs(result.data or {}) do
-            if server.id ~= game.JobId
+
+            if
+                server.id ~= game.JobId
                 and server.playing <= 1
-                and server.playing < server.maxPlayers then
+                and server.playing < server.maxPlayers
+            then
 
                 found += 1
+
                 AddServer(server)
 
                 Status.Text =
-                    "Found " .. found .. " server(s)"
+                    "Found " ..
+                    tostring(found) ..
+                    " server(s)"
+
             end
+
         end
 
         cursor = result.nextPageCursor
@@ -218,70 +341,97 @@ local function ScanServers()
         0,
         0,
         0,
-        Layout.AbsoluteContentSize.Y + 15
+        Layout.AbsoluteContentSize.Y + 20
     )
 
     if found == 0 then
+
         Status.Text = "No 0-1 player servers found"
+
     else
-        Status.Text = "Found " .. found .. " server(s)"
+
+        Status.Text =
+            "Found " ..
+            tostring(found) ..
+            " server(s)"
+
     end
 
     return found
+
 end
 
---// Refresh
+--// REFRESH
 Refresh.MouseButton1Click:Connect(function()
+
     Refresh.Active = false
+
     ScanServers()
+
     Refresh.Active = true
+
 end)
 
---// Auto Hop
+--// AUTO HOP
 local Auto = false
 
 AutoHop.MouseButton1Click:Connect(function()
+
     Auto = not Auto
 
     if Auto then
+
         AutoHop.Text = "AUTO HOP: ON"
         AutoHop.BackgroundColor3 = Color3.fromRGB(200, 70, 70)
 
         task.spawn(function()
+
             while Auto do
+
                 Status.Text = "Looking for server..."
 
                 local cursor = nil
                 local joined = false
 
                 repeat
+
                     local url =
-                        "https://games.roblox.com/v1/games/"
-                        .. PlaceId
-                        .. "/servers/Public?sortOrder=Asc&limit=100"
+                        "https://games.roblox.com/v1/games/" ..
+                        PlaceId ..
+                        "/servers/Public?sortOrder=Asc&limit=100"
 
                     if cursor then
-                        url = url .. "&cursor=" ..
+
+                        url =
+                            url ..
+                            "&cursor=" ..
                             HttpService:UrlEncode(cursor)
+
                     end
 
                     local success, result = pcall(function()
+
                         return HttpService:JSONDecode(
                             game:HttpGet(url)
                         )
+
                     end)
 
                     if success then
+
                         for _, server in ipairs(result.data or {}) do
-                            if server.id ~= game.JobId
+
+                            if
+                                server.id ~= game.JobId
                                 and server.playing <= 1
-                                and server.playing < server.maxPlayers then
+                                and server.playing < server.maxPlayers
+                            then
 
                                 Status.Text =
                                     "Joining " ..
-                                    server.playing ..
+                                    tostring(server.playing) ..
                                     "/" ..
-                                    server.maxPlayers
+                                    tostring(server.maxPlayers)
 
                                 joined = true
 
@@ -292,12 +442,17 @@ AutoHop.MouseButton1Click:Connect(function()
                                 )
 
                                 break
+
                             end
+
                         end
 
                         cursor = result.nextPageCursor
+
                     else
+
                         task.wait(2)
+
                     end
 
                     if joined then
@@ -309,21 +464,130 @@ AutoHop.MouseButton1Click:Connect(function()
                 until not cursor
 
                 if not joined then
+
                     Status.Text =
                         "No 0-1 player server. Rescanning..."
+
                     task.wait(3)
+
                 end
+
             end
+
         end)
 
     else
+
         AutoHop.Text = "AUTO HOP: OFF"
-        AutoHop.BackgroundColor3 = Color3.fromRGB(50, 170, 90)
+        AutoHop.BackgroundColor3 = Color3.fromRGB(45, 165, 90)
+
         Status.Text = "Auto Hop stopped"
+
     end
+
 end)
 
---// Initial scan
+--// DRAG MENU
+local Dragging = false
+local DragStart
+local StartPosition
+
+local function UpdateDrag(input)
+
+    local Delta = input.Position - DragStart
+
+    Main.Position = UDim2.new(
+        StartPosition.X.Scale,
+        StartPosition.X.Offset + Delta.X,
+        StartPosition.Y.Scale,
+        StartPosition.Y.Offset + Delta.Y
+    )
+
+end
+
+Header.InputBegan:Connect(function(input)
+
+    if
+        input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch
+    then
+
+        Dragging = true
+        DragStart = input.Position
+        StartPosition = Main.Position
+
+        input.Changed:Connect(function()
+
+            if input.UserInputState == Enum.UserInputState.End then
+                Dragging = false
+            end
+
+        end)
+
+    end
+
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+
+    if
+        Dragging
+        and
+        (
+            input.UserInputType == Enum.UserInputType.MouseMovement
+            or input.UserInputType == Enum.UserInputType.Touch
+        )
+    then
+
+        UpdateDrag(input)
+
+    end
+
+end)
+
+--// OPEN BUTTON
+local OpenButton = Instance.new("TextButton")
+OpenButton.Size = UDim2.fromOffset(90, 38)
+OpenButton.Position = UDim2.fromOffset(15, 15)
+OpenButton.BackgroundColor3 = Color3.fromRGB(50, 120, 220)
+OpenButton.Text = "OPEN"
+OpenButton.TextColor3 = Color3.new(1, 1, 1)
+OpenButton.TextSize = 13
+OpenButton.Font = Enum.Font.GothamBold
+OpenButton.Visible = false
+OpenButton.Parent = Gui
+
+local OpenCorner = Instance.new("UICorner")
+OpenCorner.CornerRadius = UDim.new(0, 8)
+OpenCorner.Parent = OpenButton
+
+--// MINIMIZE
+Minimize.MouseButton1Click:Connect(function()
+
+    Main.Visible = false
+    OpenButton.Visible = true
+
+end)
+
+--// OPEN
+OpenButton.MouseButton1Click:Connect(function()
+
+    Main.Visible = true
+    OpenButton.Visible = false
+
+end)
+
+--// CLOSE
+Close.MouseButton1Click:Connect(function()
+
+    Auto = false
+    Gui:Destroy()
+
+end)
+
+--// INITIAL SCAN
 task.spawn(function()
+
     ScanServers()
+
 end)
