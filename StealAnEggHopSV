@@ -1,593 +1,632 @@
---// STEAL AN EGG - SERVER BROWSER
+--// =========================================================
+--// STEAL AN EGG - SERVER HOP HUB
+--// Find servers with 0-1 player
 --// PlaceId: 107778070777162
+--// =========================================================
 
 local Players = game:GetService("Players")
 local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
 local UserInputService = game:GetService("UserInputService")
 
-local Player = Players.LocalPlayer
-local PlaceId = 107778070777162
+local LocalPlayer = Players.LocalPlayer
 
---// GUI
-local Gui = Instance.new("ScreenGui")
-Gui.Name = "StealAnEggServerBrowser"
-Gui.ResetOnSpawn = false
-Gui.Parent = Player:WaitForChild("PlayerGui")
+local PLACE_ID = 107778070777162
 
---// MAIN
+-- Server Hop target
+-- 0 = empty server
+-- 1 = one player
+local TARGET_PLAYERS = 1
+
+-- Số page tối đa scan
+local MAX_PAGES = 5
+
+--=========================================================
+-- GUI
+--=========================================================
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "StealAnEggServerHop"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+pcall(function()
+    ScreenGui.Parent = game:GetService("CoreGui")
+end)
+
+if not ScreenGui.Parent then
+    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+end
+
+--=========================================================
+-- MAIN
+--=========================================================
+
 local Main = Instance.new("Frame")
-Main.Size = UDim2.fromOffset(420, 500)
-Main.Position = UDim2.new(0.5, -210, 0.5, -250)
-Main.BackgroundColor3 = Color3.fromRGB(22, 23, 29)
+Main.Name = "Main"
+Main.Size = UDim2.new(0, 410, 0, 345)
+Main.Position = UDim2.new(0.5, -205, 0.5, -172)
+Main.BackgroundColor3 = Color3.fromRGB(10, 13, 19)
 Main.BorderSizePixel = 0
-Main.Active = true
-Main.Parent = Gui
+Main.Parent = ScreenGui
 
 local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 12)
 MainCorner.Parent = Main
 
 local MainStroke = Instance.new("UIStroke")
-MainStroke.Color = Color3.fromRGB(55, 57, 68)
-MainStroke.Thickness = 1
+MainStroke.Color = Color3.fromRGB(0, 255, 170)
+MainStroke.Thickness = 1.5
+MainStroke.Transparency = 0.15
 MainStroke.Parent = Main
 
---// HEADER
-local Header = Instance.new("Frame")
-Header.Size = UDim2.new(1, 0, 0, 70)
-Header.BackgroundColor3 = Color3.fromRGB(27, 28, 36)
-Header.BorderSizePixel = 0
-Header.Active = true
-Header.Parent = Main
+--=========================================================
+-- TOP BAR
+--=========================================================
 
-local HeaderCorner = Instance.new("UICorner")
-HeaderCorner.CornerRadius = UDim.new(0, 12)
-HeaderCorner.Parent = Header
+local TopBar = Instance.new("Frame")
+TopBar.Size = UDim2.new(1, 0, 0, 62)
+TopBar.BackgroundColor3 = Color3.fromRGB(15, 19, 27)
+TopBar.BorderSizePixel = 0
+TopBar.Parent = Main
 
---// TITLE
+local TopCorner = Instance.new("UICorner")
+TopCorner.CornerRadius = UDim.new(0, 12)
+TopCorner.Parent = TopBar
+
+-- Green line
+local TopLine = Instance.new("Frame")
+TopLine.Size = UDim2.new(1, -30, 0, 2)
+TopLine.Position = UDim2.new(0, 15, 1, -2)
+TopLine.BackgroundColor3 = Color3.fromRGB(0, 255, 170)
+TopLine.BorderSizePixel = 0
+TopLine.Parent = TopBar
+
+-- Title
 local Title = Instance.new("TextLabel")
-Title.Position = UDim2.fromOffset(16, 8)
-Title.Size = UDim2.new(1, -110, 0, 30)
+Title.Size = UDim2.new(1, -70, 0, 28)
+Title.Position = UDim2.new(0, 18, 0, 7)
 Title.BackgroundTransparency = 1
-Title.Text = "🦖🥚STEAL AN EGG"
-Title.TextColor3 = Color3.fromRGB(245, 245, 250)
-Title.TextSize = 21
+Title.Text = "🌟TIK TOK: NGHUYROBLOX12🌟"
+Title.TextColor3 = Color3.fromRGB(0, 255, 170)
 Title.Font = Enum.Font.GothamBold
+Title.TextSize = 17
 Title.TextXAlignment = Enum.TextXAlignment.Left
-Title.Parent = Header
+Title.Parent = TopBar
 
-local SubTitle = Instance.new("TextLabel")
-SubTitle.Position = UDim2.fromOffset(17, 37)
-SubTitle.Size = UDim2.new(1, -110, 0, 20)
-SubTitle.BackgroundTransparency = 1
-SubTitle.Text = "TÌM SERVER 1 NGƯỜI"
-SubTitle.TextColor3 = Color3.fromRGB(130, 135, 150)
-SubTitle.TextSize = 11
-SubTitle.Font = Enum.Font.GothamMedium
-SubTitle.TextXAlignment = Enum.TextXAlignment.Left
-SubTitle.Parent = Header
+-- Subtitle
+local Subtitle = Instance.new("TextLabel")
+Subtitle.Size = UDim2.new(1, -70, 0, 18)
+Subtitle.Position = UDim2.new(0, 20, 0, 35)
+Subtitle.BackgroundTransparency = 1
+Subtitle.Text = "STEAL AN EGG  •  TÌM SERVER 1 NGƯỜI"
+Subtitle.TextColor3 = Color3.fromRGB(105, 115, 130)
+Subtitle.Font = Enum.Font.GothamMedium
+Subtitle.TextSize = 9
+Subtitle.TextXAlignment = Enum.TextXAlignment.Left
+Subtitle.Parent = TopBar
 
---// MINIMIZE BUTTON
-local Minimize = Instance.new("TextButton")
-Minimize.Size = UDim2.fromOffset(32, 30)
-Minimize.Position = UDim2.new(1, -72, 0, 10)
-Minimize.BackgroundColor3 = Color3.fromRGB(50, 52, 62)
-Minimize.Text = "-"
-Minimize.TextColor3 = Color3.fromRGB(230, 230, 235)
-Minimize.TextSize = 20
-Minimize.Font = Enum.Font.GothamBold
-Minimize.Parent = Header
+--=========================================================
+-- CLOSE
+--=========================================================
 
-local MinCorner = Instance.new("UICorner")
-MinCorner.CornerRadius = UDim.new(0, 7)
-MinCorner.Parent = Minimize
-
---// CLOSE BUTTON
-local Close = Instance.new("TextButton")
-Close.Size = UDim2.fromOffset(32, 30)
-Close.Position = UDim2.new(1, -36, 0, 10)
-Close.BackgroundColor3 = Color3.fromRGB(190, 55, 65)
-Close.Text = "X"
-Close.TextColor3 = Color3.fromRGB(255, 255, 255)
-Close.TextSize = 13
-Close.Font = Enum.Font.GothamBold
-Close.Parent = Header
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 34, 0, 34)
+CloseButton.Position = UDim2.new(1, -45, 0, 14)
+CloseButton.BackgroundColor3 = Color3.fromRGB(30, 24, 31)
+CloseButton.BorderSizePixel = 0
+CloseButton.Text = "×"
+CloseButton.TextColor3 = Color3.fromRGB(255, 75, 90)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.TextSize = 22
+CloseButton.Parent = TopBar
 
 local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(0, 7)
-CloseCorner.Parent = Close
+CloseCorner.CornerRadius = UDim.new(0, 8)
+CloseCorner.Parent = CloseButton
 
---// STATUS
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+--=========================================================
+-- SERVER CURRENT INFO
+--=========================================================
+
+local CurrentBox = Instance.new("Frame")
+CurrentBox.Size = UDim2.new(1, -36, 0, 66)
+CurrentBox.Position = UDim2.new(0, 18, 0, 80)
+CurrentBox.BackgroundColor3 = Color3.fromRGB(18, 23, 31)
+CurrentBox.BorderSizePixel = 0
+CurrentBox.Parent = Main
+
+local CurrentCorner = Instance.new("UICorner")
+CurrentCorner.CornerRadius = UDim.new(0, 9)
+CurrentCorner.Parent = CurrentBox
+
+local CurrentStroke = Instance.new("UIStroke")
+CurrentStroke.Color = Color3.fromRGB(35, 45, 58)
+CurrentStroke.Thickness = 1
+CurrentStroke.Parent = CurrentBox
+
+-- Icon
+local CurrentIcon = Instance.new("TextLabel")
+CurrentIcon.Size = UDim2.new(0, 38, 1, 0)
+CurrentIcon.Position = UDim2.new(0, 8, 0, 0)
+CurrentIcon.BackgroundTransparency = 1
+CurrentIcon.Text = "👦"
+CurrentIcon.TextSize = 19
+CurrentIcon.Parent = CurrentBox
+
+-- Players text
+local ServerText = Instance.new("TextLabel")
+ServerText.Size = UDim2.new(0.65, 0, 0, 24)
+ServerText.Position = UDim2.new(0, 48, 0, 10)
+ServerText.BackgroundTransparency = 1
+ServerText.Text = "NGƯỜI CHƠI TRONG SERVER : [ 0 / 7 ]"
+ServerText.TextColor3 = Color3.fromRGB(240, 245, 250)
+ServerText.Font = Enum.Font.GothamBold
+ServerText.TextSize = 13
+ServerText.TextXAlignment = Enum.TextXAlignment.Left
+ServerText.Parent = CurrentBox
+
+-- Current status
 local Status = Instance.new("TextLabel")
-Status.Size = UDim2.new(1, -20, 0, 24)
-Status.Position = UDim2.fromOffset(10, 75)
+Status.Size = UDim2.new(0, 125, 0, 20)
+Status.Position = UDim2.new(1, -140, 0, 23)
 Status.BackgroundTransparency = 1
-Status.Text = "SẴN SÀNG"
-Status.TextColor3 = Color3.fromRGB(175, 178, 190)
-Status.TextSize = 13
-Status.Font = Enum.Font.Gotham
-Status.TextXAlignment = Enum.TextXAlignment.Left
-Status.Parent = Main
+Status.Text = "● SẴN SÀNG"
+Status.TextColor3 = Color3.fromRGB(0, 255, 170)
+Status.Font = Enum.Font.GothamBold
+Status.TextSize = 10
+Status.TextXAlignment = Enum.TextXAlignment.Right
+Status.Parent = CurrentBox
 
---// REFRESH
-local Refresh = Instance.new("TextButton")
-Refresh.Size = UDim2.fromOffset(125, 35)
-Refresh.Position = UDim2.fromOffset(10, 102)
-Refresh.BackgroundColor3 = Color3.fromRGB(55, 120, 220)
-Refresh.Text = "LÀM MỚI"
-Refresh.TextColor3 = Color3.new(1, 1, 1)
-Refresh.TextSize = 13
-Refresh.Font = Enum.Font.GothamBold
-Refresh.Parent = Main
+--=========================================================
+-- TARGET
+--=========================================================
+
+local TargetBox = Instance.new("Frame")
+TargetBox.Size = UDim2.new(0.5, -21, 0, 58)
+TargetBox.Position = UDim2.new(0, 18, 0, 158)
+TargetBox.BackgroundColor3 = Color3.fromRGB(18, 23, 31)
+TargetBox.BorderSizePixel = 0
+TargetBox.Parent = Main
+
+local TargetCorner = Instance.new("UICorner")
+TargetCorner.CornerRadius = UDim.new(0, 9)
+TargetCorner.Parent = TargetBox
+
+local TargetStroke = Instance.new("UIStroke")
+TargetStroke.Color = Color3.fromRGB(35, 45, 58)
+TargetStroke.Thickness = 1
+TargetStroke.Parent = TargetBox
+
+local TargetTitle = Instance.new("TextLabel")
+TargetTitle.Size = UDim2.new(1, -20, 0, 18)
+TargetTitle.Position = UDim2.new(0, 12, 0, 7)
+TargetTitle.BackgroundTransparency = 1
+TargetTitle.Text = "MỤC TIÊU"
+TargetTitle.TextColor3 = Color3.fromRGB(105, 115, 130)
+TargetTitle.Font = Enum.Font.GothamBold
+TargetTitle.TextSize = 9
+TargetTitle.TextXAlignment = Enum.TextXAlignment.Left
+TargetTitle.Parent = TargetBox
+
+local TargetValue = Instance.new("TextLabel")
+TargetValue.Size = UDim2.new(1, -20, 0, 24)
+TargetValue.Position = UDim2.new(0, 12, 0, 27)
+TargetValue.BackgroundTransparency = 1
+TargetValue.Text = "[ 0 - 1 NGƯỜI CHƠI ]"
+TargetValue.TextColor3 = Color3.fromRGB(0, 255, 170)
+TargetValue.Font = Enum.Font.GothamBold
+TargetValue.TextSize = 12
+TargetValue.TextXAlignment = Enum.TextXAlignment.Left
+TargetValue.Parent = TargetBox
+
+--=========================================================
+-- REFRESH
+--=========================================================
+
+local RefreshButton = Instance.new("TextButton")
+RefreshButton.Size = UDim2.new(0.5, -21, 0, 58)
+RefreshButton.Position = UDim2.new(0.5, 3, 0, 158)
+RefreshButton.BackgroundColor3 = Color3.fromRGB(18, 23, 31)
+RefreshButton.BorderSizePixel = 0
+RefreshButton.Text = "🔄  LÀM MỚI"
+RefreshButton.TextColor3 = Color3.fromRGB(235, 240, 245)
+RefreshButton.Font = Enum.Font.GothamBold
+RefreshButton.TextSize = 12
+RefreshButton.Parent = Main
 
 local RefreshCorner = Instance.new("UICorner")
-RefreshCorner.CornerRadius = UDim.new(0, 7)
-RefreshCorner.Parent = Refresh
+RefreshCorner.CornerRadius = UDim.new(0, 9)
+RefreshCorner.Parent = RefreshButton
 
---// AUTO HOP
-local AutoHop = Instance.new("TextButton")
-AutoHop.Size = UDim2.fromOffset(125, 35)
-AutoHop.Position = UDim2.fromOffset(145, 102)
-AutoHop.BackgroundColor3 = Color3.fromRGB(45, 165, 90)
-AutoHop.Text = "AUTO HOP: TẮT"
-AutoHop.TextColor3 = Color3.new(1, 1, 1)
-AutoHop.TextSize = 13
-AutoHop.Font = Enum.Font.GothamBold
-AutoHop.Parent = Main
+local RefreshStroke = Instance.new("UIStroke")
+RefreshStroke.Color = Color3.fromRGB(35, 45, 58)
+RefreshStroke.Thickness = 1
+RefreshStroke.Parent = RefreshButton
 
-local AutoCorner = Instance.new("UICorner")
-AutoCorner.CornerRadius = UDim.new(0, 7)
-AutoCorner.Parent = AutoHop
+--=========================================================
+-- HOP BUTTON
+--=========================================================
 
---// FOOTER
+local HopButton = Instance.new("TextButton")
+HopButton.Size = UDim2.new(1, -36, 0, 62)
+HopButton.Position = UDim2.new(0, 18, 0, 231)
+HopButton.BackgroundColor3 = Color3.fromRGB(0, 175, 120)
+HopButton.BorderSizePixel = 0
+HopButton.Text = "⚡  JOIN SERVER 1 NGƯỜI"
+HopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+HopButton.Font = Enum.Font.GothamBold
+HopButton.TextSize = 14
+HopButton.Parent = Main
+
+local HopCorner = Instance.new("UICorner")
+HopCorner.CornerRadius = UDim.new(0, 10)
+HopCorner.Parent = HopButton
+
+local HopStroke = Instance.new("UIStroke")
+HopStroke.Color = Color3.fromRGB(0, 255, 170)
+HopStroke.Thickness = 1
+HopStroke.Parent = HopButton
+
+--=========================================================
+-- FOOTER
+--=========================================================
+
 local Footer = Instance.new("TextLabel")
-Footer.Position = UDim2.new(0, 18, 1, -42)
-Footer.Size = UDim2.new(1, -36, 0, 25)
+Footer.Size = UDim2.new(1, -36, 0, 20)
+Footer.Position = UDim2.new(0, 18, 1, -27)
 Footer.BackgroundTransparency = 1
-Footer.Text = "TikTok: nghuyroblox12"
-Footer.TextColor3 = Color3.fromRGB(105, 109, 125)
-Footer.TextSize = 30
-Footer.Font = Enum.Font.GothamMedium
+Footer.Text = "TÔI YÊU CÁC BẠN  •  SCRIPT NHÀ LÀM"
+Footer.TextColor3 = Color3.fromRGB(70, 80, 95)
+Footer.Font = Enum.Font.Gotham
+Footer.TextSize = 22
 Footer.TextXAlignment = Enum.TextXAlignment.Center
 Footer.Parent = Main
 
---// SERVER LIST
-local List = Instance.new("ScrollingFrame")
-List.Size = UDim2.new(1, -20, 1, -185)
-List.Position = UDim2.fromOffset(10, 145)
-List.BackgroundColor3 = Color3.fromRGB(17, 18, 23)
-List.BorderSizePixel = 0
+--=========================================================
+-- DRAG
+--=========================================================
 
---// THANH VUOT TO HON
-List.ScrollBarThickness = 18
-List.ScrollBarImageColor3 = Color3.fromRGB(105, 110, 130)
-List.ScrollBarImageTransparency = 0
+local Dragging = false
+local DragStart
+local StartPosition
 
-List.ScrollingEnabled = true
-List.ScrollingDirection = Enum.ScrollingDirection.Y
-List.Active = true
-List.CanvasSize = UDim2.new(0, 0, 0, 0)
-List.AutomaticCanvasSize = Enum.AutomaticSize.None
-List.Parent = Main
+TopBar.InputBegan:Connect(function(Input)
 
-local ListCorner = Instance.new("UICorner")
-ListCorner.CornerRadius = UDim.new(0, 8)
-ListCorner.Parent = List
+    if Input.UserInputType == Enum.UserInputType.MouseButton1 then
 
-local Layout = Instance.new("UIListLayout")
-Layout.Padding = UDim.new(0, 6)
-Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-Layout.SortOrder = Enum.SortOrder.LayoutOrder
-Layout.Parent = List
-
-local Padding = Instance.new("UIPadding")
-Padding.PaddingTop = UDim.new(0, 8)
-Padding.PaddingBottom = UDim.new(0, 8)
-Padding.PaddingLeft = UDim.new(0, 4)
-Padding.PaddingRight = UDim.new(0, 4)
-Padding.Parent = List
-
---// MAKE SERVER ROW
-local function AddServer(server)
-
-    local Row = Instance.new("Frame")
-    Row.Size = UDim2.new(1, -20, 0, 55)
-    Row.BackgroundColor3 = Color3.fromRGB(34, 35, 43)
-    Row.BorderSizePixel = 0
-    Row.Parent = List
-
-    local RowCorner = Instance.new("UICorner")
-    RowCorner.CornerRadius = UDim.new(0, 7)
-    RowCorner.Parent = Row
-
-    local RowStroke = Instance.new("UIStroke")
-    RowStroke.Color = Color3.fromRGB(48, 50, 60)
-    RowStroke.Thickness = 1
-    RowStroke.Parent = Row
-
-    local PlayersText = Instance.new("TextLabel")
-    PlayersText.Size = UDim2.new(1, -110, 1, 0)
-    PlayersText.Position = UDim2.fromOffset(12, 0)
-    PlayersText.BackgroundTransparency = 1
-
-    PlayersText.Text =
-        "PLAYERS   " ..
-        tostring(server.playing) ..
-        "/" ..
-        tostring(server.maxPlayers)
-
-    PlayersText.TextColor3 = Color3.fromRGB(235, 235, 240)
-    PlayersText.TextSize = 15
-    PlayersText.Font = Enum.Font.GothamMedium
-    PlayersText.TextXAlignment = Enum.TextXAlignment.Left
-    PlayersText.Parent = Row
-
-    local Join = Instance.new("TextButton")
-    Join.Size = UDim2.fromOffset(75, 35)
-    Join.Position = UDim2.new(1, -87, 0.5, -17)
-    Join.BackgroundColor3 = Color3.fromRGB(55, 120, 220)
-    Join.Text = "JOIN"
-    Join.TextColor3 = Color3.new(1, 1, 1)
-    Join.TextSize = 13
-    Join.Font = Enum.Font.GothamBold
-    Join.Parent = Row
-
-    local JoinCorner = Instance.new("UICorner")
-    JoinCorner.CornerRadius = UDim.new(0, 6)
-    JoinCorner.Parent = Join
-
-    Join.MouseButton1Click:Connect(function()
-
-        Status.Text =
-            "Joining " ..
-            tostring(server.playing) ..
-            "/" ..
-            tostring(server.maxPlayers) ..
-            "..."
-
-        TeleportService:TeleportToPlaceInstance(
-            PlaceId,
-            server.id,
-            Player
-        )
-
-    end)
-end
-
---// CLEAR LIST
-local function ClearList()
-
-    for _, child in ipairs(List:GetChildren()) do
-
-        if child:IsA("Frame") then
-            child:Destroy()
-        end
+        Dragging = true
+        DragStart = Input.Position
+        StartPosition = Main.Position
 
     end
-
-end
-
---// SCAN SERVERS
-local function ScanServers()
-
-    ClearList()
-
-    List.CanvasPosition = Vector2.new(0, 0)
-
-    Status.Text = "ĐANG TÌM SERVER..."
-
-    local cursor = nil
-    local found = 0
-
-    repeat
-
-        local url =
-            "https://games.roblox.com/v1/games/" ..
-            PlaceId ..
-            "/servers/Public?sortOrder=Asc&limit=100"
-
-        if cursor then
-            url =
-                url ..
-                "&cursor=" ..
-                HttpService:UrlEncode(cursor)
-        end
-
-        local success, result = pcall(function()
-
-            return HttpService:JSONDecode(
-                game:HttpGet(url)
-            )
-
-        end)
-
-        if not success then
-
-            Status.Text = "KHÔNG THỂ TÌM SERVER HÃY THỬ LẠI..."
-            task.wait(2)
-            continue
-
-        end
-
-        for _, server in ipairs(result.data or {}) do
-
-            if
-                server.id ~= game.JobId
-                and server.playing <= 1
-                and server.playing < server.maxPlayers
-            then
-
-                found += 1
-
-                AddServer(server)
-
-                Status.Text =
-                    "Found " ..
-                    tostring(found) ..
-                    " server(s)"
-
-            end
-
-        end
-
-        cursor = result.nextPageCursor
-
-        task.wait(0.1)
-
-    until not cursor
-
-    List.CanvasSize = UDim2.new(
-        0,
-        0,
-        0,
-        Layout.AbsoluteContentSize.Y + 20
-    )
-
-    if found == 0 then
-
-        Status.Text = "KHÔNG TÌM THẤY SERVER CÓ 0-1 NGƯỜI"
-
-    else
-
-        Status.Text =
-            "Found " ..
-            tostring(found) ..
-            " server(s)"
-
-    end
-
-    return found
-
-end
-
---// REFRESH
-Refresh.MouseButton1Click:Connect(function()
-
-    Refresh.Active = false
-
-    ScanServers()
-
-    Refresh.Active = true
 
 end)
 
---// AUTO HOP
-local Auto = false
+TopBar.InputEnded:Connect(function(Input)
 
-AutoHop.MouseButton1Click:Connect(function()
+    if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+        Dragging = false
+    end
 
-    Auto = not Auto
+end)
 
-    if Auto then
+UserInputService.InputChanged:Connect(function(Input)
 
-        AutoHop.Text = "AUTO HOP: ON"
-        AutoHop.BackgroundColor3 = Color3.fromRGB(200, 70, 70)
+    if Dragging and Input.UserInputType == Enum.UserInputType.MouseMovement then
 
-        task.spawn(function()
+        local Delta = Input.Position - DragStart
 
-            while Auto do
+        Main.Position = UDim2.new(
+            StartPosition.X.Scale,
+            StartPosition.X.Offset + Delta.X,
+            StartPosition.Y.Scale,
+            StartPosition.Y.Offset + Delta.Y
+        )
 
-                Status.Text = "ĐANG TÌM SERVER..."
+    end
 
-                local cursor = nil
-                local joined = false
+end)
 
-                repeat
+--=========================================================
+-- UPDATE CURRENT SERVER
+--=========================================================
 
-                    local url =
-                        "https://games.roblox.com/v1/games/" ..
-                        PlaceId ..
-                        "/servers/Public?sortOrder=Asc&limit=100"
+local function UpdateCurrentServer()
 
-                    if cursor then
+    local CurrentPlayers = #Players:GetPlayers()
 
-                        url =
-                            url ..
-                            "&cursor=" ..
-                            HttpService:UrlEncode(cursor)
+    -- Roblox max player count
+    local MaxPlayers = Players.MaxPlayers
+
+    if not MaxPlayers or MaxPlayers <= 0 then
+        MaxPlayers = 7
+    end
+
+    ServerText.Text =
+        "NGƯỜI CHƠI TRONG SERVER : [ "
+        .. CurrentPlayers
+        .. " / "
+        .. MaxPlayers
+        .. " ]"
+
+    -- CHỈ FULL KHI SERVER THẬT SỰ ĐẦY
+    if CurrentPlayers >= MaxPlayers then
+
+        Status.Text = "● ĐẦY"
+        Status.TextColor3 = Color3.fromRGB(255, 70, 85)
+
+    elseif CurrentPlayers <= 1 then
+
+        Status.Text = "● ÍT NGƯỜI CHƠI"
+        Status.TextColor3 = Color3.fromRGB(0, 255, 170)
+
+    elseif CurrentPlayers <= math.floor(MaxPlayers / 2) then
+
+        Status.Text = "● SẴN SÀNG"
+        Status.TextColor3 = Color3.fromRGB(0, 255, 170)
+
+    else
+
+        Status.Text = "● HOẠT ĐỘNG"
+        Status.TextColor3 = Color3.fromRGB(255, 200, 70)
+
+    end
+
+end
+
+Players.PlayerAdded:Connect(UpdateCurrentServer)
+Players.PlayerRemoving:Connect(UpdateCurrentServer)
+
+UpdateCurrentServer()
+
+--=========================================================
+-- SERVER SCANNER
+--=========================================================
+
+local function GetLowPlayerServers()
+
+    local FoundServers = {}
+    local Cursor = ""
+
+    for Page = 1, MAX_PAGES do
+
+        local URL =
+            "https://games.roblox.com/v1/games/"
+            .. tostring(PLACE_ID)
+            .. "/servers/Public?sortOrder=Asc&limit=100"
+
+        if Cursor ~= "" then
+            URL = URL .. "&cursor=" .. HttpService:UrlEncode(Cursor)
+        end
+
+        local Success, Result = pcall(function()
+            return game:HttpGet(URL)
+        end)
+
+        if not Success then
+            break
+        end
+
+        local DecodeSuccess, Data = pcall(function()
+            return HttpService:JSONDecode(Result)
+        end)
+
+        if not DecodeSuccess or not Data then
+            break
+        end
+
+        for _, Server in ipairs(Data.data or {}) do
+
+            if Server.id
+                and Server.playing ~= nil
+                and Server.maxPlayers ~= nil then
+
+                -- Không lấy server hiện tại
+                if Server.id ~= game.JobId then
+
+                    -- Chỉ lấy server 0 hoặc 1 người
+                    if Server.playing <= TARGET_PLAYERS
+                        and Server.playing < Server.maxPlayers then
+
+                        table.insert(FoundServers, Server)
 
                     end
-
-                    local success, result = pcall(function()
-
-                        return HttpService:JSONDecode(
-                            game:HttpGet(url)
-                        )
-
-                    end)
-
-                    if success then
-
-                        for _, server in ipairs(result.data or {}) do
-
-                            if
-                                server.id ~= game.JobId
-                                and server.playing <= 1
-                                and server.playing < server.maxPlayers
-                            then
-
-                                Status.Text =
-                                    "Joining " ..
-                                    tostring(server.playing) ..
-                                    "/" ..
-                                    tostring(server.maxPlayers)
-
-                                joined = true
-
-                                TeleportService:TeleportToPlaceInstance(
-                                    PlaceId,
-                                    server.id,
-                                    Player
-                                )
-
-                                break
-
-                            end
-
-                        end
-
-                        cursor = result.nextPageCursor
-
-                    else
-
-                        task.wait(2)
-
-                    end
-
-                    if joined then
-                        break
-                    end
-
-                    task.wait(0.2)
-
-                until not cursor
-
-                if not joined then
-
-                    Status.Text =
-                        "KHÔNG TÌM THẤY SERVER CÓ 0-1 NGƯỜI..."
-
-                    task.wait(3)
 
                 end
 
             end
 
-        end)
+        end
 
-    else
+        Cursor = Data.nextPageCursor or ""
 
-        AutoHop.Text = "AUTO HOP: OFF"
-        AutoHop.BackgroundColor3 = Color3.fromRGB(45, 165, 90)
+        if Cursor == "" then
+            break
+        end
 
-        Status.Text = "Auto Hop DỪNG"
+        task.wait(0.15)
 
     end
 
-end)
-
---// DRAG MENU
-local Dragging = false
-local DragStart
-local StartPosition
-
-local function UpdateDrag(input)
-
-    local Delta = input.Position - DragStart
-
-    Main.Position = UDim2.new(
-        StartPosition.X.Scale,
-        StartPosition.X.Offset + Delta.X,
-        StartPosition.Y.Scale,
-        StartPosition.Y.Offset + Delta.Y
-    )
+    return FoundServers
 
 end
 
-Header.InputBegan:Connect(function(input)
+--=========================================================
+-- HOP
+--=========================================================
 
-    if
-        input.UserInputType == Enum.UserInputType.MouseButton1
-        or input.UserInputType == Enum.UserInputType.Touch
-    then
+local Hopping = false
 
-        Dragging = true
-        DragStart = input.Position
-        StartPosition = Main.Position
+local function ServerHop()
 
-        input.Changed:Connect(function()
-
-            if input.UserInputState == Enum.UserInputState.End then
-                Dragging = false
-            end
-
-        end)
-
+    if Hopping then
+        return
     end
 
-end)
+    Hopping = true
 
-UserInputService.InputChanged:Connect(function(input)
+    -- Scanning
+    Status.Text = "● ĐANG TÌM"
+    Status.TextColor3 = Color3.fromRGB(255, 205, 70)
 
-    if
-        Dragging
-        and
-        (
-            input.UserInputType == Enum.UserInputType.MouseMovement
-            or input.UserInputType == Enum.UserInputType.Touch
+    HopButton.Text = "🔎  ĐANG TÌM SERVERS..."
+    HopButton.BackgroundColor3 = Color3.fromRGB(35, 45, 55)
+
+    local Servers = GetLowPlayerServers()
+
+    -- Không tìm thấy
+    if #Servers == 0 then
+
+        Status.Text = "● KHÔNG TÌM THẤY"
+        Status.TextColor3 = Color3.fromRGB(255, 80, 90)
+
+        HopButton.Text = "⚠  KHÔNG TÌM THẤY SEVER"
+        HopButton.BackgroundColor3 = Color3.fromRGB(145, 60, 70)
+
+        task.wait(1.2)
+
+        HopButton.Text = "⚡  TÌM SERVER 1 NGƯỜI"
+        HopButton.BackgroundColor3 = Color3.fromRGB(0, 175, 120)
+
+        Hopping = false
+
+        return
+    end
+
+    -- Chọn server ngẫu nhiên
+    local SelectedServer =
+        Servers[math.random(1, #Servers)]
+
+    -- Found
+    Status.Text = "● ĐÃ TÌM THẤY"
+    Status.TextColor3 = Color3.fromRGB(0, 255, 170)
+
+    HopButton.Text =
+        "✓  ĐÃ TÌM THẤY "
+        .. tostring(SelectedServer.playing)
+        .. " PLAYER SERVER"
+
+    HopButton.BackgroundColor3 =
+        Color3.fromRGB(0, 135, 220)
+
+    task.wait(0.5)
+
+    -- Joining
+    Status.Text = "● ĐANG VÀO SERVER"
+    Status.TextColor3 = Color3.fromRGB(80, 180, 255)
+
+    HopButton.Text = "🚀  ĐANG VÀO SERVER..."
+
+    task.wait(0.2)
+
+    local TeleportSuccess = pcall(function()
+
+        TeleportService:TeleportToPlaceInstance(
+            PLACE_ID,
+            SelectedServer.id,
+            LocalPlayer
         )
-    then
 
-        UpdateDrag(input)
+    end)
 
+    -- Teleport fail
+    if not TeleportSuccess then
+
+        Status.Text = "● DỊCH CHUYỂN THẤT BẠI"
+        Status.TextColor3 = Color3.fromRGB(255, 80, 90)
+
+        HopButton.Text = "⚠  DỊCH CHUYỂN THẤT BẠI"
+        HopButton.BackgroundColor3 = Color3.fromRGB(145, 60, 70)
+
+        task.wait(1)
+
+        HopButton.Text = "⚡  TÌM SERVER 1 NGƯỜI"
+        HopButton.BackgroundColor3 = Color3.fromRGB(0, 175, 120)
+
+        Hopping = false
+
+    end
+
+end
+
+--=========================================================
+-- REFRESH BUTTON
+--=========================================================
+
+RefreshButton.MouseButton1Click:Connect(function()
+
+    if Hopping then
+        return
+    end
+
+    UpdateCurrentServer()
+
+    RefreshButton.Text = "🔄  ĐANG LÀM MỚI..."
+    RefreshButton.TextColor3 = Color3.fromRGB(0, 255, 170)
+
+    task.wait(0.6)
+
+    RefreshButton.Text = "🔄  LÀM MỚI"
+    RefreshButton.TextColor3 = Color3.fromRGB(235, 240, 245)
+
+end)
+
+--=========================================================
+-- HOP BUTTON
+--=========================================================
+
+HopButton.MouseButton1Click:Connect(function()
+    ServerHop()
+end)
+
+--=========================================================
+-- HOVER EFFECT
+--=========================================================
+
+HopButton.MouseEnter:Connect(function()
+
+    if not Hopping then
+        HopButton.BackgroundColor3 =
+            Color3.fromRGB(0, 205, 140)
     end
 
 end)
 
---// OPEN BUTTON
-local OpenButton = Instance.new("TextButton")
-OpenButton.Size = UDim2.fromOffset(90, 38)
-OpenButton.Position = UDim2.fromOffset(15, 15)
-OpenButton.BackgroundColor3 = Color3.fromRGB(50, 120, 220)
-OpenButton.Text = "MỞ"
-OpenButton.TextColor3 = Color3.new(1, 1, 1)
-OpenButton.TextSize = 13
-OpenButton.Font = Enum.Font.GothamBold
-OpenButton.Visible = false
-OpenButton.Parent = Gui
+HopButton.MouseLeave:Connect(function()
 
-local OpenCorner = Instance.new("UICorner")
-OpenCorner.CornerRadius = UDim.new(0, 8)
-OpenCorner.Parent = OpenButton
-
---// MINIMIZE
-Minimize.MouseButton1Click:Connect(function()
-
-    Main.Visible = false
-    OpenButton.Visible = true
+    if not Hopping then
+        HopButton.BackgroundColor3 =
+            Color3.fromRGB(0, 175, 120)
+    end
 
 end)
 
---// OPEN
-OpenButton.MouseButton1Click:Connect(function()
+RefreshButton.MouseEnter:Connect(function()
 
-    Main.Visible = true
-    OpenButton.Visible = false
-
-end)
-
---// CLOSE
-Close.MouseButton1Click:Connect(function()
-
-    Auto = false
-    Gui:Destroy()
+    RefreshButton.BackgroundColor3 =
+        Color3.fromRGB(27, 34, 45)
 
 end)
 
---// INITIAL SCAN
-task.spawn(function()
+RefreshButton.MouseLeave:Connect(function()
 
-    ScanServers()
+    RefreshButton.BackgroundColor3 =
+        Color3.fromRGB(18, 23, 31)
 
 end)
+
+--=========================================================
+-- FINISH
+--=========================================================
+
+print("======================================")
+print(" STEAL AN EGG - SERVER HOP HUB")
+print(" Target: 0-1 NGƯỜI CHƠI")
+print(" PlaceId: " .. tostring(PLACE_ID))
+print("======================================")
